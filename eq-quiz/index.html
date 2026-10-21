@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EQ Quiz — Research Administration</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0064a4 0%, #1b3d6e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 30px 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 800px;
+      width: 100%;
+      padding: 40px 44px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .header { text-align: center; margin-bottom: 32px; }
+    .badge {
+      display: inline-block;
+      background: #ffd200;
+      color: #1b3d6e;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .header h1 { font-size: 26px; color: #0064a4; margin-bottom: 10px; line-height: 1.3; }
+    .header p { color: #555; font-size: 14.5px; line-height: 1.6; max-width: 580px; margin: 0 auto; }
+    .progress-label { font-size: 12px; color: #888; text-align: right; margin-bottom: 6px; }
+    .progress-bar-wrap {
+      background: #e8f0f8;
+      border-radius: 8px;
+      height: 8px;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0064a4, #00b4d8);
+      border-radius: 8px;
+      transition: width 0.4s ease;
+    }
+    .question-block {
+      margin-bottom: 24px;
+      padding: 20px 22px;
+      border: 1.5px solid #e2eaf3;
+      border-radius: 12px;
+      transition: border-color 0.2s;
+    }
+    .question-block:hover { border-color: #aac8e0; }
+    .question-text {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #1b3d6e;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .q-number {
+      display: inline-block;
+      background: #e8f0f8;
+      color: #0064a4;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .options { display: flex; flex-direction: column; gap: 8px; }
+    .option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      padding: 11px 14px;
+      border-radius: 9px;
+      border: 1.5px solid #dde6f0;
+      font-size: 13.5px;
+      color: #333;
+      line-height: 1.5;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .option-label:hover { background: #f0f6ff; border-color: #0064a4; }
+    .option-label input[type="radio"] { display: none; }
+    .option-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #aac8e0;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .option-dot::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #0064a4;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .option-label.selected {
+      background: #e8f3ff;
+      border-color: #0064a4;
+      color: #0d3b6e;
+      font-weight: 600;
+    }
+    .option-label.selected .option-dot { border-color: #0064a4; }
+    .option-label.selected .option-dot::after { opacity: 1; }
+    .divider { border: none; border-top: 1.5px solid #edf2f8; margin: 28px 0; }
+    .btn-row { display: flex; justify-content: center; margin-top: 16px; }
+    .btn-submit {
+      background: linear-gradient(135deg, #0064a4, #004f85);
+      color: #fff;
+      border: none;
+      padding: 14px 52px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 15px rgba(0,100,164,0.35);
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,100,164,0.45); }
+    .error-msg { color: #c0392b; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+
+    /* Results */
+    .results-section { display: none; text-align: center; }
+    .results-section h2 { font-size: 24px; color: #0064a4; margin-bottom: 8px; }
+    .score-circle {
+      width: 130px; height: 130px; border-radius: 50%;
+      background: linear-gradient(135deg, #0064a4, #00b4d8);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      margin: 24px auto 16px;
+      box-shadow: 0 6px 22px rgba(0,100,164,0.3);
+    }
+    .score-circle .score-num { font-size: 38px; font-weight: 800; color: #fff; line-height: 1; }
+    .score-circle .score-denom { font-size: 13px; color: rgba(255,255,255,0.8); }
+    .eq-level { font-size: 20px; font-weight: 700; color: #1b3d6e; margin-bottom: 6px; }
+    .eq-desc { font-size: 14px; color: #555; line-height: 1.6; max-width: 580px; margin: 0 auto 28px; }
+    .breakdown { background: #f5f9ff; border-radius: 12px; padding: 20px 24px; text-align: left; margin-bottom: 26px; }
+    .breakdown h3 { font-size: 13px; font-weight: 700; color: #0064a4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; }
+    .dim-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .dim-name { font-size: 13px; font-weight: 600; color: #1b3d6e; width: 185px; flex-shrink: 0; }
+    .dim-bar-wrap { flex: 1; background: #dde8f5; border-radius: 6px; height: 12px; overflow: hidden; }
+    .dim-bar { height: 100%; border-radius: 6px; transition: width 0.8s ease; }
+    .dim-bar.sa  { background: linear-gradient(90deg, #0064a4, #4aa3d8); }
+    .dim-bar.sm  { background: linear-gradient(90deg, #27ae60, #58d68d); }
+    .dim-bar.soa { background: linear-gradient(90deg, #f39c12, #f7c150); }
+    .dim-bar.rm  { background: linear-gradient(90deg, #8e44ad, #c678dd); }
+    .dim-score { font-size: 12px; font-weight: 700; color: #444; width: 52px; text-align: right; }
+    .quad-insights { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 26px; text-align: left; }
+    .insight-card { border-radius: 10px; padding: 14px 16px; border-left: 4px solid; }
+    .insight-card.sa  { background: #eef6ff; border-color: #0064a4; }
+    .insight-card.sm  { background: #edfaf1; border-color: #27ae60; }
+    .insight-card.soa { background: #fff8ec; border-color: #f39c12; }
+    .insight-card.rm  { background: #fdf0f8; border-color: #8e44ad; }
+    .insight-card .i-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; }
+    .insight-card.sa  .i-title { color: #0064a4; }
+    .insight-card.sm  .i-title { color: #27ae60; }
+    .insight-card.soa .i-title { color: #f39c12; }
+    .insight-card.rm  .i-title { color: #8e44ad; }
+    .insight-card p { font-size: 12.5px; color: #444; line-height: 1.5; }
+    .reflection-box {
+      background: #fffbea;
+      border-left: 4px solid #ffd200;
+      border-radius: 8px;
+      padding: 16px 18px;
+      text-align: left;
+      margin-bottom: 26px;
+    }
+    .reflection-box h4 { font-size: 12px; font-weight: 700; color: #1b3d6e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+    .reflection-box p { font-size: 13.5px; color: #444; line-height: 1.6; }
+    .btn-retake {
+      background: transparent; color: #0064a4; border: 2px solid #0064a4;
+      padding: 11px 36px; border-radius: 30px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .btn-retake:hover { background: #0064a4; color: #fff; }
+    @media (max-width: 600px) {
+      .card { padding: 24px 16px; }
+      .header h1 { font-size: 20px; }
+      .quad-insights { grid-template-columns: 1fr; }
+      .dim-name { width: 130px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <div id="quiz-section">
+    <div class="header">
+      <div class="badge">Pre-Session Assessment</div>
+      <h1>Emotional Intelligence in Research Administration</h1>
+      <p>For each question below, select the response that best describes how you typically think, feel, or behave in your role. There are no right or wrong answers — this is a personal snapshot to enrich your session experience.</p>
+    </div>
+
+    <div class="progress-label" id="progress-label">0 of 10 answered</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+    </div>
+
+    <form id="eq-form">
+
+      <!-- SELF-AWARENESS: Q1, Q2 -->
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">1</span>When grant deadlines or compliance pressures build up, how well do you notice their effect on your emotional state?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q1" value="1"><span class="option-dot"></span>I rarely notice until something goes wrong or someone points it out.</label>
+          <label class="option-label"><input type="radio" name="q1" value="2"><span class="option-dot"></span>I sometimes catch it, but usually after the fact.</label>
+          <label class="option-label"><input type="radio" name="q1" value="3"><span class="option-dot"></span>I usually recognize it while it's happening and try to adjust.</label>
+          <label class="option-label"><input type="radio" name="q1" value="4"><span class="option-dot"></span>I consistently identify it in real time and proactively manage my response.</label>
+        </div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">2</span>How clearly do you understand your strengths and limitations in your role as a research administrator?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q2" value="1"><span class="option-dot"></span>I focus on getting the work done and don't spend much time on self-reflection.</label>
+          <label class="option-label"><input type="radio" name="q2" value="2"><span class="option-dot"></span>I have a general sense of my strengths but am less clear on where I struggle.</label>
+          <label class="option-label"><input type="radio" name="q2" value="3"><span class="option-dot"></span>I have a solid understanding of both and can discuss them openly.</label>
+          <label class="option-label"><input type="radio" name="q2" value="4"><span class="option-dot"></span>I actively seek feedback and use it to continuously refine my self-awareness.</label>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- SELF-MANAGEMENT: Q3, Q4, Q5 -->
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">3</span>When a grant submission hits an unexpected obstacle or a sponsor changes requirements at the last minute, how do you typically respond?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q3" value="1"><span class="option-dot"></span>I feel flustered, and it often shows in how I communicate with the team.</label>
+          <label class="option-label"><input type="radio" name="q3" value="2"><span class="option-dot"></span>I stay calm internally but sometimes struggle to project composure externally.</label>
+          <label class="option-label"><input type="radio" name="q3" value="3"><span class="option-dot"></span>I usually stay composed and shift quickly into problem-solving mode.</label>
+          <label class="option-label"><input type="radio" name="q3" value="4"><span class="option-dot"></span>I remain calm, think clearly, and help steady those around me in the process.</label>
+        </div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">4</span>When research protocols, funding regulations, or institutional policies change unexpectedly, which best describes your typical response?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q4" value="1"><span class="option-dot"></span>I feel thrown off and it takes significant time to get back on track.</label>
+          <label class="option-label"><input type="radio" name="q4" value="2"><span class="option-dot"></span>I adapt eventually, but the transition can be bumpy for me and those I work with.</label>
+          <label class="option-label"><input type="radio" name="q4" value="3"><span class="option-dot"></span>I adjust fairly quickly and find workable solutions most of the time.</label>
+          <label class="option-label"><input type="radio" name="q4" value="4"><span class="option-dot"></span>I embrace the change fluidly and actively help others navigate the transition as well.</label>
+        </div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">5</span>When your workload is heavy or priorities shift, how would you describe your follow-through on commitments to PIs, sponsors, and colleagues?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q5" value="1"><span class="option-dot"></span>I sometimes miss or delay commitments when things get hectic.</label>
+          <label class="option-label"><input type="radio" name="q5" value="2"><span class="option-dot"></span>I usually follow through but may need reminders during especially busy periods.</label>
+          <label class="option-label"><input type="radio" name="q5" value="3"><span class="option-dot"></span>I consistently meet my commitments and communicate proactively when timelines shift.</label>
+          <label class="option-label"><input type="radio" name="q5" value="4"><span class="option-dot"></span>I am known for reliability — stakeholders trust me to deliver even under the most intense pressure.</label>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- SOCIAL AWARENESS: Q6, Q7 -->
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">6</span>When a PI or researcher is stressed or frustrated about their project — even without saying so — what do you typically do?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q6" value="1"><span class="option-dot"></span>I tend to focus on the task at hand and may miss emotional cues altogether.</label>
+          <label class="option-label"><input type="radio" name="q6" value="2"><span class="option-dot"></span>I notice when something seems off but don't always feel confident acting on it.</label>
+          <label class="option-label"><input type="radio" name="q6" value="3"><span class="option-dot"></span>I often pick up on it and check in when I sense distress or frustration.</label>
+          <label class="option-label"><input type="radio" name="q6" value="4"><span class="option-dot"></span>I consistently read emotional cues and respond in ways that make researchers feel supported.</label>
+        </div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">7</span>When PIs, researchers, or sponsors are sharing their needs or concerns, how would you describe your level of presence?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q7" value="1"><span class="option-dot"></span>I'm often multitasking or mentally on to the next thing during conversations.</label>
+          <label class="option-label"><input type="radio" name="q7" value="2"><span class="option-dot"></span>I try to listen but sometimes find my mind drifting to other priorities.</label>
+          <label class="option-label"><input type="radio" name="q7" value="3"><span class="option-dot"></span>I am generally present and engaged — people feel heard in most of my interactions.</label>
+          <label class="option-label"><input type="radio" name="q7" value="4"><span class="option-dot"></span>I give my undivided attention consistently — people regularly tell me they feel truly heard.</label>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- RELATIONSHIP MANAGEMENT: Q8, Q9, Q10 -->
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">8</span>When communicating regulatory requirements or compliance issues to research teams, which best describes your approach?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q8" value="1"><span class="option-dot"></span>I deliver the information matter-of-factly — it's not my job to manage reactions.</label>
+          <label class="option-label"><input type="radio" name="q8" value="2"><span class="option-dot"></span>I try to soften the message but don't always land it in a way that reduces friction.</label>
+          <label class="option-label"><input type="radio" name="q8" value="3"><span class="option-dot"></span>I generally communicate requirements in a clear, collaborative, and empathetic way.</label>
+          <label class="option-label"><input type="radio" name="q8" value="4"><span class="option-dot"></span>I frame compliance in terms of the researcher's goals and consistently minimize friction.</label>
+        </div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">9</span>When conflicts arise between research goals and administrative requirements, how do you typically handle them?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q9" value="1"><span class="option-dot"></span>I prioritize compliance — it's the researcher's responsibility to adapt to the rules.</label>
+          <label class="option-label"><input type="radio" name="q9" value="2"><span class="option-dot"></span>I look for solutions but sometimes struggle to balance both sides effectively.</label>
+          <label class="option-label"><input type="radio" name="q9" value="3"><span class="option-dot"></span>I usually find a middle ground that respects both the research goals and the requirements.</label>
+          <label class="option-label"><input type="radio" name="q9" value="4"><span class="option-dot"></span>I consistently serve as a bridge — finding creative solutions that honor both the science and compliance.</label>
+        </div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-text"><span class="q-number">10</span>When it comes to building relationships with faculty, sponsors, and colleagues — even challenging ones — which best describes your approach?</div>
+        <div class="options">
+          <label class="option-label"><input type="radio" name="q10" value="1"><span class="option-dot"></span>I maintain working relationships but don't invest much in deepening them.</label>
+          <label class="option-label"><input type="radio" name="q10" value="2"><span class="option-dot"></span>I have strong connections with some stakeholders but find others harder to connect with.</label>
+          <label class="option-label"><input type="radio" name="q10" value="3"><span class="option-dot"></span>I consistently work on building trust and most stakeholders view me as a reliable partner.</label>
+          <label class="option-label"><input type="radio" name="q10" value="4"><span class="option-dot"></span>I am known for strong, trust-based relationships across the research enterprise — even with difficult stakeholders.</label>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-submit" onclick="submitQuiz()">Submit My Results</button>
+      </div>
+      <div class="error-msg" id="error-msg">⚠️ Please answer all 10 questions before submitting.</div>
+    </form>
+  </div>
+
+  <!-- RESULTS SECTION -->
+  <div class="results-section" id="results-section">
+    <div class="badge">Your Results</div>
+    <h2>Your EQ Profile in Research Administration</h2>
+    <p style="color:#555; font-size:14px; margin-top:6px;">Here's your personal EQ snapshot across the four quadrants.</p>
+
+    <div class="score-circle">
+      <span class="score-num" id="total-score">–</span>
+      <span class="score-denom">out of 40</span>
+    </div>
+
+    <div class="eq-level" id="eq-level-label">–</div>
+    <div class="eq-desc" id="eq-desc-text">–</div>
+
+    <div class="breakdown">
+      <h3>📊 Quadrant Breakdown</h3>
+      <div class="dim-row">
+        <div class="dim-name">🔍 Self-Awareness</div>
+        <div class="dim-bar-wrap"><div class="dim-bar sa" id="bar-sa" style="width:0%"></div></div>
+        <div class="dim-score" id="score-sa">–</div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-name">⚙️ Self-Management</div>
+        <div class="dim-bar-wrap"><div class="dim-bar sm" id="bar-sm" style="width:0%"></div></div>
+        <div class="dim-score" id="score-sm">–</div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-name">👥 Social Awareness</div>
+        <div class="dim-bar-wrap"><div class="dim-bar soa" id="bar-soa" style="width:0%"></div></div>
+        <div class="dim-score" id="score-soa">–</div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-name">🤝 Relationship Mgmt</div>
+        <div class="dim-bar-wrap"><div class="dim-bar rm" id="bar-rm" style="width:0%"></div></div>
+        <div class="dim-score" id="score-rm">–</div>
+      </div>
+    </div>
+
+    <div class="quad-insights" id="quad-insights"></div>
+
+    <div class="reflection-box">
+      <h4>💡 Reflection Prompt for Today's Session</h4>
+      <p id="reflection-text">–</p>
+    </div>
+
+    <button class="btn-retake" onclick="retakeQuiz()">↺ Retake the Quiz</button>
+  </div>
+
+</div>
+
+<script>
+  const questions = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'];
+  const totalQ = questions.length;
+  const quadMax = { sa: 8, sm: 12, soa: 8, rm: 12 };
+
+  document.querySelectorAll('input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+      const name = this.name;
+      document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+        r.closest('.option-label').classList.remove('selected');
+      });
+      this.closest('.option-label').classList.add('selected');
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    let answered = 0;
+    questions.forEach(q => { if (document.querySelector(`input[name="${q}"]:checked`)) answered++; });
+    const pct = ((answered / totalQ) * 100).toFixed(2);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = `${answered} of ${totalQ} answered`;
+  }
+
+  function getScore(qs) {
+    return qs.reduce((sum, q) => {
+      const checked = document.querySelector(`input[name="${q}"]:checked`);
+      return sum + (checked ? parseInt(checked.value) : 0);
+    }, 0);
+  }
+
+  function setBar(id, score) {
+    const pct = ((score / quadMax[id]) * 100).toFixed(1);
+    setTimeout(() => {
+      document.getElementById('bar-' + id).style.width = pct + '%';
+      document.getElementById('score-' + id).textContent = score + '/' + quadMax[id];
+    }, 150);
+  }
+
+  function getInsight(id, score) {
+    const configs = {
+      sa: {
+        icon: '🔍', label: 'Self-Awareness', cls: 'sa', max: 8,
+        high: 'You have strong self-awareness in your research administration role. You recognize how grant pressures and deadlines affect your emotional state — a critical foundation for effective professional practice.',
+        mid: 'You have developing self-awareness. Try pausing during busy periods — like submission crunch times — to check in on how you\'re feeling and how it may be affecting those around you.',
+        low: 'Building self-awareness is your biggest opportunity. Consider reflecting after high-stress situations (e.g., a difficult audit or last-minute submission) to identify emotional patterns in your responses.'
+      },
+      sm: {
+        icon: '⚙️', label: 'Self-Management', cls: 'sm', max: 12,
+        high: 'You manage yourself well under the demands of research administration. You stay composed during regulatory changes and last-minute sponsor surprises — a hallmark of a trusted professional.',
+        mid: 'You\'re developing strong self-management. Focus on creating a pause before reacting during high-pressure moments, such as when a PI pushes back on compliance requirements.',
+        low: 'Self-management is a key growth area. Start small — practice one calming technique (like a deliberate breath) before responding in a stressful research administration scenario.'
+      },
+      soa: {
+        icon: '👥', label: 'Social Awareness', cls: 'soa', max: 8,
+        high: 'You have a strong ability to read the needs and emotional states of the researchers and teams you support. Your attentiveness makes PIs and colleagues feel genuinely heard and understood.',
+        mid: 'You\'re growing your social awareness. Try actively listening for what researchers aren\'t saying — their frustrations and pressures often live beneath the surface of a compliance question.',
+        low: 'Social awareness is an exciting area to grow. Practice being fully present in conversations with PIs and sponsors — set aside your to-do list and focus entirely on understanding their world.'
+      },
+      rm: {
+        icon: '🤝', label: 'Relationship Management', cls: 'rm', max: 12,
+        high: 'You excel at building and sustaining strong relationships across the research enterprise. You communicate compliance with care, resolve conflict constructively, and are a trusted partner to faculty and sponsors.',
+        mid: 'You\'re building your relationship management skills. Focus on proactive, empathetic communication — especially when delivering difficult regulatory news or navigating competing interests.',
+        low: 'Relationship management is a great area to invest in. Choose one relationship — perhaps a challenging PI or a new sponsor — and be intentional about strengthening it through consistent communication.'
+      }
+    };
+    const c = configs[id];
+    const pct = score / c.max;
+    const text = pct >= 0.80 ? c.high : pct >= 0.50 ? c.mid : c.low;
+    return `<div class="insight-card ${c.cls}"><div class="i-title">${c.icon} ${c.label}</div><p>${text}</p></div>`;
+  }
+
+  function submitQuiz() {
+    let allAnswered = true;
+    questions.forEach(q => { if (!document.querySelector(`input[name="${q}"]:checked`)) allAnswered = false; });
+    if (!allAnswered) {
+      document.getElementById('error-msg').style.display = 'block';
+      return;
+    }
+    document.getElementById('error-msg').style.display = 'none';
+
+    const sa  = getScore(['q1','q2']);
+    const sm  = getScore(['q3','q4','q5']);
+    const soa = getScore(['q6','q7']);
+    const rm  = getScore(['q8','q9','q10']);
+    const total = sa + sm + soa + rm;
+
+    document.getElementById('quiz-section').style.display = 'none';
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('total-score').textContent = total;
+
+    setBar('sa', sa); setBar('sm', sm); setBar('soa', soa); setBar('rm', rm);
+
+    document.getElementById('quad-insights').innerHTML =
+      getInsight('sa', sa) + getInsight('sm', sm) + getInsight('soa', soa) + getInsight('rm', rm);
+
+    let level, desc, reflection;
+    if (total >= 34) {
+      level = '⭐ Exceptional EQ';
+      desc = 'You demonstrate highly developed emotional intelligence in your research administration practice. You are self-aware under pressure, adaptable, deeply attuned to stakeholders, and skilled at building lasting partnerships across the research enterprise.';
+      reflection = 'You bring strong EQ to your research administration work. How might you use these strengths today to mentor a colleague, support a struggling PI, or help bridge a gap between researchers and administration?';
+    } else if (total >= 26) {
+      level = '✅ Strong EQ';
+      desc = 'You bring solid emotional intelligence to your role. You navigate the demands of research administration with composure and care, with targeted opportunities to deepen your skills in one or two areas.';
+      reflection = 'Looking at your quadrant breakdown, where do you see the most room to grow? What would it look like to apply stronger EQ in that area during a real situation at work this week?';
+    } else if (total >= 17) {
+      level = '🌱 Developing EQ';
+      desc = 'You are on a positive path of growth. You have genuine strengths to build on, and today\'s session will offer practical tools to help you bring greater emotional intelligence into your daily research administration work.';
+      reflection = 'Think of a recent interaction with a PI, sponsor, or colleague that felt challenging. Which EQ area might have made the biggest difference? What would you do differently with that insight?';
+    } else {
+      level = '🔧 Building Your Foundation';
+      desc = 'Emotional intelligence is a skill anyone can develop — and every research administrator benefits from it. Today\'s session is your starting point for building practical EQ tools you can apply directly in your work.';
+      reflection = 'Think of one relationship in your research administration role — with a PI, a sponsor, or a colleague — that you\'d like to strengthen. Keep that relationship in mind as you engage in today\'s session.';
+    }
+
+    document.getElementById('eq-level-label').textContent = level;
+    document.getElementById('eq-desc-text').textContent = desc;
+    document.getElementById('reflection-text').textContent = reflection;
+    window.scrollTo(0, 0);
+  }
+
+  function retakeQuiz() {
+    document.querySelectorAll('input[type="radio"]').forEach(r => {
+      r.checked = false;
+      r.closest('.option-label').classList.remove('selected');
+    });
+    document.getElementById('results-section').style.display = 'none';
+    document.getElementById('quiz-section').style.display = 'block';
+    document.getElementById('progress-bar').style.width = '0%';
+    document.getElementById('progress-label').textContent = '0 of 10 answered';
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>
